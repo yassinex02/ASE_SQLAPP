@@ -1,52 +1,90 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
+import pymssql
 import os
 
 app = Flask(__name__)
 
-# Set your Azure SQL Database credentials as environment variables
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-import os
-from dotenv import load_dotenv
-from fastapi import FastAPI
-from azure import identity
-import pyodbc
-import struct
-
-load_dotenv(".env")  # Load environment variables from the file
+# Function to establish a database connection
 
 
-# Get the connection string from the environment variables
-connection_string = os.environ.get("AZURE_SQL_CONNECTIONSTRING")
+def get_db_connection():
+    username = "yassine"
+    password = os.environ.get("AZURE_SQL_PASSWORD")
+    server = "asesql2.database.windows.net"  # change to your server
+    database = "ase_sql"
+    return pymssql.connect(server, username, password, database)
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
-    age = db.Column(db.Integer, nullable=False)
+# Function to create the user_info table if it doesn't exist
+
+
+def create_table_if_not_exists(conn):
+    cursor = conn.cursor()
+    cursor.execute('''
+        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='user_info' and xtype='U')
+        CREATE TABLE user_info (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            name VARCHAR(255),
+            age INT
+        )
+    ''')
+    conn.commit()
+    cursor.close()
+
+# Function to insert data into the user_info table
+
+
+def insert_data(conn, name, age):
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
+    conn.commit()
+    cursor.close()
+
+# Function to query and fetch all data from the user_info table
+
+
+def query_all_data(conn):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM user_info")
+    data = cursor.fetchall()
+    cursor.close()
+    return data
+
+# Route for the home page
 
 
 @app.route('/')
-def index():
-    users = User.query.all()
-    return render_template('index.html', users=users)
+def home():
+    return render_template('index.html')
+
+# Route to handle form submission
 
 
-@app.route('/add_user', methods=['POST'])
-def add_user():
+@app.route('/submit', methods=['POST'])
+def submit():
     name = request.form['name']
     age = request.form['age']
 
-    new_user = User(name=name, age=age)
-    db.session.add(new_user)
-    db.session.commit()
+    # Insert data into the database
+    conn = get_db_connection()
+    create_table_if_not_exists(conn)
+    insert_data(conn, name, age)
+    conn.close()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
+
+# Route for displaying all data
+
+
+@app.route('/show_database')
+def show_database():
+    # Fetch all data from the database
+    conn = get_db_connection()
+    data = query_all_data(conn)
+    conn.close()
+
+    return render_template('show_database.html', data=data)
 
 
 if __name__ == '__main__':
-    # Run the app
     app.run(debug=True)
