@@ -22,7 +22,12 @@ jobs:
       - name: Run Python script
         env:
           AZURE_SQL_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
-        run: python app.py
+        run: |
+          python app.py > flask_output.log 2>&1 &
+          sleep 5  # Wait for the Flask app to start
 
-      - name: Stop Flask server
-        run: pkill -f "python app.py" #test
+      - name: Check if Flask is still running
+        run: pgrep -af "python app.py" || true # Print process ID if running, or true if not
+
+      - name: Post completion cleanup
+        run: pkill -f "python app.py" || true # Ensure the Flask app is stopped
