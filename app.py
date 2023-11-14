@@ -2,6 +2,16 @@ from flask import Flask, render_template, request, redirect, url_for
 import pymssql
 import os
 from dotenv import load_dotenv
+from flask_wtf import FlaskForm
+from wtforms import StringField, IntegerField, SubmitField
+from wtforms.validators import DataRequired, Length
+
+
+class UserForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired(), Length(max=255)])
+    age = IntegerField('Age', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
 
 load_dotenv()
 app = Flask(__name__)
@@ -71,16 +81,21 @@ def home():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    name = request.form['name']
-    age = request.form['age']
+    form = UserForm(request.form)
 
-    # Insert data into the database
-    conn = get_db_connection()
-    create_table_if_not_exists(conn)
-    insert_data(conn, name, age)
-    conn.close()
+    if form.validate():
+        name = form.name.data
+        age = form.age.data
 
-    return redirect(url_for('home'))
+        # Insert data into the database
+        conn = get_db_connection()
+        create_table_if_not_exists(conn)
+        insert_data(conn, name, age)
+        conn.close()
+
+        return redirect(url_for('home'))
+    else:
+        print("Form validation failed.")
 
 # Route for displaying all data
 
