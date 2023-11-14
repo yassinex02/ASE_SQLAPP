@@ -64,8 +64,9 @@ def home():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    # Check if the request is coming from the ZAP scanner
-    if 'OWASP-ZAP-Scan' in request.headers.get('User-Agent', ''):
+    # Check if the request is likely coming from the ZAP scanner
+    user_agent = request.headers.get('User-Agent')
+    if 'ZAP' in user_agent:
         print("Ignoring request from ZAP scanner.")
         return redirect(url_for('home'))
 
@@ -94,4 +95,4 @@ def show_database():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
