@@ -1,0 +1,4 @@
+-config api.addrs.addr.name=.*
+-config api.addrs.addr.regex=true
+-config api.disablekey=true
+-config api.key=your-secret-key
