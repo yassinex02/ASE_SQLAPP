@@ -1,5 +1,4 @@
 pymssql
 flask
 python-dotenv
-flask_talisman
-flask_wtf
+
