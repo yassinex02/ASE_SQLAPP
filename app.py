@@ -38,8 +38,8 @@ def create_table_if_not_exists(conn):
 def insert_data(conn, name, age):
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
+        query = "INSERT INTO user_info (name, age) VALUES (%s, %s)"
+        cursor.execute(query, (name, age))
         conn.commit()
         print("Data inserted successfully.")
     except Exception as e:
@@ -47,6 +47,7 @@ def insert_data(conn, name, age):
         print("Error inserting data:", str(e))
     finally:
         cursor.close()
+
 
 # Function to query and fetch all data from the user_info table
 
