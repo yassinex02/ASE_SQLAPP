@@ -32,29 +32,8 @@ def create_table_if_not_exists(conn):
     conn.commit()
     cursor.close()
 
-# Function to insert data into the user_info table
-
-
-def insert_data(conn, name, age):
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
-    conn.commit()
-    cursor.close()
-
-# Function to query and fetch all data from the user_info table
-
-
-def query_all_data(conn):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM user_info")
-    data = cursor.fetchall()
-    cursor.close()
-    return data
 
 # Route for the home page
-
-
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -64,11 +43,6 @@ def home():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    # Check if the request is coming from the ZAP scanner
-    if 'OWASP-ZAP-Scan' in request.headers.get('User-Agent', ''):
-        print("Ignoring request from ZAP scanner.")
-        return redirect(url_for('home'))
-
     name = request.form['name']
     age = request.form['age']
 
@@ -94,4 +68,4 @@ def show_database():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
