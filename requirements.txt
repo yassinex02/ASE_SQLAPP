@@ -1,5 +1,9 @@
 pymssql
 flask
 python-dotenv
+<<<<<<< HEAD
 flask_talisman
 flask_wtf
+=======
+
+>>>>>>> e3ce0458827ca0542bffa2380b06007d03a57ac5
