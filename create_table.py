@@ -1,16 +1,17 @@
 import os
 import pymssql
+from dotenv import load_dotenv
 
+load_dotenv()
 # Get the connection details from the environment variables
 
-password = os.environ.get("AZURE_SQL_PASSWORD")
 
 # %%
 
 
 def get_db_connection():
     username = "yassine"
-    password = "Ihatemylifelol#75"
+    password = os.environ.get("AZURE_SQL_PASSWORD")
     server = "asesql2.database.windows.net"
 
     database = "ase_sql"
@@ -71,6 +72,5 @@ def query_and_print(conn, query):
 
 create_table_if_not_exists(get_db_connection())
 
-insert_dummy_data(get_db_connection())
 
 query_and_print(get_db_connection(), "SELECT * FROM user_info")
