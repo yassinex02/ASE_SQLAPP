@@ -12,22 +12,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install flake8
           pip install -r requirements.txt
 
-      - name: Run Python script
-        env:
-          AZURE_SQL_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
+      - name: Lint with flake8
         run: |
-          python app.py > flask_output.log 2>&1 &
-          sleep 5  # Wait for the Flask app to start
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Check if Flask is still running
-        run: pgrep -af "python app.py" || true # Print process ID if running, or true if not
-
-      - name: Post completion cleanup
-        run: pkill -f "python app.py" || true # Ensure the Flask app is stopped
+      - name: Set environment variables
+        run: |
+          echo "AZURE_SQL_PASSWORD=${{ secrets.AZURE_SQL_PASSWORD }}" >> $GITHUB_ENV
