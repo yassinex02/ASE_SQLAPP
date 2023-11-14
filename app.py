@@ -32,8 +32,35 @@ def create_table_if_not_exists(conn):
     conn.commit()
     cursor.close()
 
+# Function to insert data into the user_info table
+
+
+def insert_data(conn, name, age):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
+        conn.commit()
+        print("Data inserted successfully.")
+    except Exception as e:
+        conn.rollback()
+        print("Error inserting data:", str(e))
+    finally:
+        cursor.close()
+
+# Function to query and fetch all data from the user_info table
+
+
+def query_all_data(conn):
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM user_info")
+    data = cursor.fetchall()
+    cursor.close()
+    return data
 
 # Route for the home page
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
