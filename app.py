@@ -68,16 +68,14 @@ def home():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    # Check for a custom header to filter out ZAP requests
-    if request.headers.get('X-From-ZAP') != 'true':
-        name = request.form['name']
-        age = request.form['age']
-        conn = get_db_connection()
-        insert_user_data(conn, name, age)
-        conn.close()
-        return redirect('/')
-    else:
-        return "Unauthorized", 401  # Return 401 Unauthorized status for ZAP requests
+    name = request.form['name']
+    age = request.form['age']
+
+    conn = get_db_connection()
+    insert_user_data(conn, name, age)
+    conn.close()
+
+    return redirect('/')
 
 # Route to show the user info table
 
@@ -92,4 +90,4 @@ def show_database():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
