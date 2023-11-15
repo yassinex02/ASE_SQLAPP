@@ -1,20 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Input Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      form {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+      }
+
+      input[type="submit"] {
+        background-color: #4caf50;
+        color: white;
+        cursor: pointer;
+      }
+
+      button {
+        background-color: #008cba;
+        color: white;
+        padding: 8px;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <form action="/submit" method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <!-- Include CSRF token here -->
       <label for="name">Name:</label>
-      <input type="text" id="name" name="name" /><br /><br />
+      <input type="text" id="name" name="name" required /><br />
       <label for="age">Age:</label>
-      <input type="text" id="age" name="age" /><br /><br />
+      <input type="text" id="age" name="age" required /><br />
       <input type="submit" value="Submit" />
     </form>
 
     <!-- Button to show users -->
-    <button onclick="window.location.href='/users'">Show All Users</button>
+    <button onclick="window.location.href='/view-users'">View All Users</button>
   </body>
 </html>

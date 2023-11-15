@@ -5,7 +5,7 @@ import os
 import pymssql
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default_key')
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'different_key')
 
 # CSRF Protection
 csrf = CSRFProtect(app)
@@ -59,14 +59,17 @@ def submit():
     cursor.close()
     conn.close()
 
+    # Show confirmation message
+    confirmation_message = f'Thank you, {name}! Your information has been submitted successfully.'
+
     return render_template_string(f'''
-        <h1>Hello {name}, you are {age} years old!</h1>
-        <button onclick="window.location.href='/users'">Show All Users</button>
+        <h1>{confirmation_message}</h1>
+        <button onclick="window.location.href='/view-users'">View All Users</button>
     ''')
 
 
-@app.route('/users')
-def users():
+@app.route('/view-users')
+def view_users():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM user_info")
@@ -74,8 +77,8 @@ def users():
     cursor.close()
     conn.close()
 
-    return render_template('data.html', users=users)
+    return render_template('database.html', users=users)
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run()
