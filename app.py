@@ -22,7 +22,8 @@ Talisman(
         'frame-ancestors': "'none'"
     },
     frame_options='SAMEORIGIN',
-    strict_transport_security=True
+    strict_transport_security=True,
+    force_https=True  # Add this line to enforce HTTPS
 )
 
 # Database connection
