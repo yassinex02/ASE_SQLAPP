@@ -1,14 +1,19 @@
-from flask import Flask, render_template, request, redirect
-import pymssql
-from dotenv import load_dotenv
+from flask import Flask, render_template_string, request, render_template
+from flask_wtf.csrf import CSRFProtect
+from flask_talisman import Talisman
 import os
+import pymssql
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default_key')
 
-# Load environment variables from .env file
-load_dotenv()
+# CSRF Protection
+csrf = CSRFProtect(app)
 
-# Function to get a database connection
+# Content Security Policy and Clickjacking Protection
+Talisman(app, content_security_policy=None, frame_options='SAMEORIGIN')
+
+# Database connection
 
 
 def get_db_connection():
@@ -16,80 +21,47 @@ def get_db_connection():
     password = os.environ.get("AZURE_SQL_PASSWORD")
     server = "asesql2.database.windows.net"
     database = "ase_sql"
+
     return pymssql.connect(server, username, password, database)
-
-# Function to create the user_info table if not exists
-
-
-def create_table_if_not_exists(conn):
-    cursor = conn.cursor()
-    cursor.execute('''
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='user_info' and xtype='U')
-        CREATE TABLE user_info (
-            id INT IDENTITY(1,1) PRIMARY KEY,
-            name VARCHAR(255),
-            age INT
-        )
-    ''')
-    conn.commit()
-    cursor.close()
-
-# Function to insert user data into the user_info table
-
-
-def insert_user_data(conn, name, age):
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO user_info (name, age) VALUES (%s, %s); SELECT SCOPE_IDENTITY()", (name, age))
-    new_id = cursor.fetchone()[0]
-    conn.commit()
-    cursor.close()
-    return new_id
-
-# Function to query and fetch all data from the user_info table
-
-
-def query_all_data(conn):
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM user_info")
-    data = cursor.fetchall()
-    cursor.close()
-    return data
-
-# Route for the home page with buttons
 
 
 @app.route('/')
-def home():
-    return render_template('home.html')
-
-# Route to handle form submission
+def index():
+    return render_template_string(open('templates/index.html').read())
 
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    # Check for a custom header to filter out ZAP requests
-    if request.headers.get('X-From-ZAP') != 'true':
-        name = request.form['name']
-        age = request.form['age']
-        conn = get_db_connection()
-        insert_user_data(conn, name, age)
-        conn.close()
-        return redirect('/')
-    else:
-        return "Unauthorized", 401  # Return 401 Unauthorized status for ZAP requests
+    name = request.form['name']
+    age = request.form['age']
+    print(f"Received name: {name}, age: {age}")
 
-# Route to show the user info table
-
-
-@app.route('/show-database')
-def show_database():
+    # Insert into database
     conn = get_db_connection()
-    create_table_if_not_exists(conn)
-    data = query_all_data(conn)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
+    conn.commit()
+    cursor.close()
     conn.close()
-    return render_template('database.html', data=data)
+
+    return render_template_string(f'''
+            <h1>Hello {name}, you are {age} years old!</h1>
+            <button onclick="window.location.href='/users'">Show All Users</button>
+        ''')
+
+
+@app.route('/users')
+def users():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM user_info")
+    users = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return render_template('data.html', users=users)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
