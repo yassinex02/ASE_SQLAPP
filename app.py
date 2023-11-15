@@ -22,6 +22,9 @@ def get_db_connection():
     server = "asesql2.database.windows.net"
     database = "ase_sql"
 
+    if password is None:
+        raise ValueError("Database password is not provided.")
+
     return pymssql.connect(server, username, password, database)
 
 
@@ -32,36 +35,40 @@ def index():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    name = request.form['name']
-    age = request.form['age']
-    print(f"Received name: {name}, age: {age}")
+    try:
+        name = request.form['name']
+        age = request.form['age']
+        print(f"Received name: {name}, age: {age}")
 
-    # Insert into database
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
-    conn.commit()
-    cursor.close()
-    conn.close()
+        # Insert into database
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO user_info (name, age) VALUES (%s, %s)", (name, age))
+            conn.commit()
 
-    return render_template_string(f'''
-            <h1>Hello {name}, you are {age} years old!</h1>
-            <button onclick="window.location.href='/users'">Show All Users</button>
-        ''')
+        return render_template_string(f'''
+                <h1>Hello {name}, you are {age} years old!</h1>
+                <button onclick="window.location.href='/users'">Show All Users</button>
+            ''')
+
+    except Exception as e:
+        return f"Error: {str(e)}", 500
 
 
 @app.route('/users')
 def users():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM user_info")
-    users = cursor.fetchall()
-    cursor.close()
-    conn.close()
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM user_info")
+                users = cursor.fetchall()
 
-    return render_template('data.html', users=users)
+        return render_template('data.html', users=users)
+
+    except Exception as e:
+        return f"Error: {str(e)}", 500
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False)
